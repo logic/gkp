@@ -1,3 +1,5 @@
+//go:generate jsonenums -type=FormFieldType,LoginSearchType
+
 package keepassrpc
 
 /*
@@ -47,41 +49,6 @@ const (
 	LSTnoRealms
 )
 
-// ApplicationMetadata describes the running instance of KeePass
-type ApplicationMetadata struct {
-	KeePassVersion string
-	IsMono         bool
-	NETCLR         string
-	NETversion     string
-	MonoVersion    string
-}
-
-// Configuration represents notable configuration of the KeePass instance
-type Configuration struct {
-	KnownDatabases []string
-	AutoCommit     bool // whether KeePass should save the active database after every change
-}
-
-// FormField represents a form for data entry
-type FormField struct {
-	Name        string
-	DisplayName string
-	Value       string
-	Type        FormFieldType `json:"@Type"`
-	ID          string        `json:"Id"`
-	Page        int
-}
-
-// LightEntry represents a single basic entry in the open KeePass database
-type LightEntry struct {
-	URLs          []string
-	Title         string
-	UniqueID      string
-	UsernameValue string
-	UsernameName  string
-	IconImageData string
-}
-
 const (
 	// MatchAccuracyNone means no match (ie. asked to return all entries)
 	MatchAccuracyNone = 0
@@ -102,74 +69,93 @@ const (
 	MatchAccuracyBest = 50
 )
 
+// ApplicationMetadata describes the running instance of KeePass
+type ApplicationMetadata struct {
+	KeePassVersion string `json:"keePassVersion"`
+	IsMono         bool   `json:"isMono"`
+	NETCLR         string `json:"nETCLR"`
+	NETversion     string `json:"nETversion"`
+	MonoVersion    string `json:"monoVersion"`
+}
+
+// Configuration represents notable configuration of the KeePass instance
+type Configuration struct {
+	KnownDatabases []string `json:"knownDatabases"`
+	AutoCommit     bool     `json:"autoCommit"`
+}
+
+// FormField represents a form for data entry
+type FormField struct {
+	Name        string        `json:"name"`
+	DisplayName string        `json:"displayName"`
+	Value       string        `json:"value"`
+	Type        FormFieldType `json:"type"`
+	ID          string        `json:"id"`
+	Page        int           `json:"page"`
+}
+
+// LightEntry represents a single basic entry in the open KeePass database
+type LightEntry struct {
+	URLs          []string `json:"uRLs"`
+	Title         string   `json:"title"`
+	UniqueID      string   `json:"uniqueID"`
+	UsernameValue string   `json:"usernameValue"`
+	UsernameName  string   `json:"usernameName"`
+	IconImageData string   `json:"iconImageData"`
+}
+
 // Entry describes a single complete entry in the open KeePass database
 type Entry struct {
 	*LightEntry
 
-	HTTPRealm     string
-	FormFieldList []FormField
+	HTTPRealm     string      `json:"hTTPRealm"`
+	FormFieldList []FormField `json:"formFieldList"`
 
 	// How accurately do the URLs in this entry match the URL we are looking for?
 	// Higher = better match.
 	// We don't consider protocol
-	MatchAccuracy int
+	MatchAccuracy int `json:"matchAccuracy"`
 
-	AlwaysAutoFill   bool
-	NeverAutoFill    bool
-	AlwaysAutoSubmit bool
-	NeverAutoSubmit  bool
+	AlwaysAutoFill   bool `json:"alwaysAutoFill"`
+	NeverAutoFill    bool `json:"neverAutoFill"`
+	AlwaysAutoSubmit bool `json:"alwaysAutoSubmit"`
+	NeverAutoSubmit  bool `json:"neverAutoSubmit"`
 	// "KeeFox priority" = 1 (1 = 30000 relevancy score, 2 = 29999 relevancy score)
 	// long autoTypeWhen "KeeFox config: autoType after page 2" (after/before or > / <) (page # or # seconds or #ms)
 	// bool autoTypeOnly "KeeFox config: only autoType" This is probably redundant considering feature request #19?
-	Priority int
+	Priority int `json:"priority"`
 
-	Parent Group
-	Db     Database
+	Parent Group    `json:"parent"`
+	Db     Database `json:"db"`
 }
 
 // Group describes a group within the open KeePass database
 type Group struct {
-	Title         string
-	UniqueID      string
-	IconImageData string
-	Path          string
-
-	ChildGroups       []Group
-	ChildEntries      []Entry
-	ChildLightEntries []LightEntry
+	Title         string `json:"title"`
+	UniqueID      string `json:"uniqueID"`
+	IconImageData string `json:"iconImageData"`
+	Path          string `json:"path"`
 }
 
 // Database describes the currently-open database in KeePass
 type Database struct {
-	Name          string
-	FileName      string
-	Root          Group
-	Active        bool
-	IconImageData string
+	Name          string `json:"name"`
+	FileName      string `json:"fileName"`
+	Root          Group  `json:"root"`
+	Active        bool   `json:"active"`
+	IconImageData string `json:"iconImageData"`
 }
 
 // LaunchGroupEditor opens the editor on a given group
 func (c *Client) LaunchGroupEditor(uuid, dbFileName string) error {
-	args := &struct {
-		UUID       string `json:"uuid"`
-		DBFileName string `json:"dbFileName"`
-	}{
-		UUID:       uuid,
-		DBFileName: dbFileName,
-	}
-	return c.JSONRPCCtx.r.Call("LaunchGroupEditor", args, nil)
+	return c.JSONRPCCtx.r.Call("LaunchGroupEditor",
+		[]interface{}{uuid, dbFileName}, nil)
 }
 
 // LaunchLoginEditor opens the editor on a given login
 func (c *Client) LaunchLoginEditor(uuid, dbFileName string) error {
-	args := &struct {
-		UUID       string `json:"uuid"`
-		DBFileName string `json:"dbFileName"`
-	}{
-		UUID:       uuid,
-		DBFileName: dbFileName,
-	}
-	return c.JSONRPCCtx.r.Call("LaunchLoginEditor", args, nil)
+	return c.JSONRPCCtx.r.Call("LaunchLoginEditor",
+		[]string{uuid, dbFileName}, nil)
 }
 
 // GetCurrentKFConfig returns configuration information for the running KeePass
@@ -214,24 +200,13 @@ func (c *Client) GetDatabaseFileName() (string, error) {
 
 // ChangeDatabase switches the active KeePass database
 func (c *Client) ChangeDatabase(filename string, closeCurrent bool) error {
-	args := &struct {
-		Filename     string `json:"filename"`
-		CloseCurrent bool   `json:"closeCurrent"`
-	}{
-		Filename:     filename,
-		CloseCurrent: closeCurrent,
-	}
-	return c.JSONRPCCtx.r.Call("ChangeDatabase", args, nil)
+	return c.JSONRPCCtx.r.Call("ChangeDatabase",
+		[]interface{}{filename, closeCurrent}, nil)
 }
 
 // ChangeLocation switches the active KeePass location
 func (c *Client) ChangeLocation(locationID string) error {
-	args := &struct {
-		LocationID string `json:"locationId"`
-	}{
-		LocationID: locationID,
-	}
-	return c.JSONRPCCtx.r.Call("ChangeLocation", args, nil)
+	return c.JSONRPCCtx.r.Call("ChangeLocation", locationID, nil)
 }
 
 // GetPasswordProfiles retrieves a list of password profiles
@@ -246,15 +221,9 @@ func (c *Client) GetPasswordProfiles() ([]string, error) {
 
 // GeneratePassword asks KeePass to generate a new password
 func (c *Client) GeneratePassword(profileName, url string) (string, error) {
-	args := &struct {
-		ProfileName string `json:"profileName"`
-		URL         string `json:"url"`
-	}{
-		ProfileName: profileName,
-		URL:         url,
-	}
 	var reply string
-	err := c.JSONRPCCtx.r.Call("GeneratePassword", args, &reply)
+	err := c.JSONRPCCtx.r.Call("GeneratePassword",
+		[]string{profileName, url}, &reply)
 	if err != nil {
 		return "", err
 	}
@@ -263,13 +232,8 @@ func (c *Client) GeneratePassword(profileName, url string) (string, error) {
 
 // RemoveEntry removes a specified entry from the active KeePass database
 func (c *Client) RemoveEntry(uuid string) (bool, error) {
-	args := &struct {
-		UUID string `json:"uuid"`
-	}{
-		UUID: uuid,
-	}
 	var reply bool
-	err := c.JSONRPCCtx.r.Call("RemoveEntry", args, &reply)
+	err := c.JSONRPCCtx.r.Call("RemoveEntry", uuid, &reply)
 	if err != nil {
 		return false, err
 	}
@@ -278,13 +242,8 @@ func (c *Client) RemoveEntry(uuid string) (bool, error) {
 
 // RemoveGroup removes a specified entry from the active KeePass database
 func (c *Client) RemoveGroup(uuid string) (bool, error) {
-	args := &struct {
-		UUID string `json:"uuid"`
-	}{
-		UUID: uuid,
-	}
 	var reply bool
-	err := c.JSONRPCCtx.r.Call("RemoveGroup", args, &reply)
+	err := c.JSONRPCCtx.r.Call("RemoveGroup", uuid, &reply)
 	if err != nil {
 		return false, err
 	}
@@ -293,17 +252,9 @@ func (c *Client) RemoveGroup(uuid string) (bool, error) {
 
 // AddLogin adds a new login to the database
 func (c *Client) AddLogin(login *Entry, parentUUID, dbFileName string) (*Entry, error) {
-	args := &struct {
-		Login      *Entry `json:"login"`
-		ParentUUID string `json:"parentUUID"`
-		DBFileName string `json:"dbFileName"`
-	}{
-		Login:      login,
-		ParentUUID: parentUUID,
-		DBFileName: dbFileName,
-	}
 	var reply Entry
-	err := c.JSONRPCCtx.r.Call("AddLogin", args, &reply)
+	err := c.JSONRPCCtx.r.Call("AddLogin",
+		[]interface{}{login, parentUUID, dbFileName}, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -312,15 +263,8 @@ func (c *Client) AddLogin(login *Entry, parentUUID, dbFileName string) (*Entry, 
 
 // AddGroup adds a new group to the database
 func (c *Client) AddGroup(name, parentUUID string) (*Group, error) {
-	args := &struct {
-		Name       string `json:"name"`
-		ParentUUID string `json:"parentUUID"`
-	}{
-		Name:       name,
-		ParentUUID: parentUUID,
-	}
 	var reply Group
-	err := c.JSONRPCCtx.r.Call("AddGroup", args, &reply)
+	err := c.JSONRPCCtx.r.Call("AddGroup", []string{name, parentUUID}, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -329,19 +273,10 @@ func (c *Client) AddGroup(name, parentUUID string) (*Group, error) {
 
 // UpdateLogin updates an existing login in the database
 func (c *Client) UpdateLogin(login *Entry, oldLoginUUID string, urlMergeMode int, dbFileName string) (*Entry, error) {
-	args := &struct {
-		Login        *Entry `json:"login"`
-		OldLoginUUID string `json:"oldLoginUUID"`
-		URLMergeMode int    `json:"urlMergeMode"`
-		DBFileName   string `json:"dbFileName"`
-	}{
-		Login:        login,
-		OldLoginUUID: oldLoginUUID,
-		URLMergeMode: urlMergeMode,
-		DBFileName:   dbFileName,
-	}
 	var reply Entry
-	err := c.JSONRPCCtx.r.Call("UpdateLogin", args, &reply)
+	err := c.JSONRPCCtx.r.Call("UpdateLogin",
+		[]interface{}{login, oldLoginUUID, urlMergeMode, dbFileName},
+		&reply)
 	if err != nil {
 		return nil, err
 	}
@@ -350,13 +285,8 @@ func (c *Client) UpdateLogin(login *Entry, oldLoginUUID string, urlMergeMode int
 
 // GetParent retrieves the parent group of a specified group
 func (c *Client) GetParent(uuid string) (*Group, error) {
-	args := &struct {
-		UUID string `json:"uuid"`
-	}{
-		UUID: uuid,
-	}
 	var reply Group
-	err := c.JSONRPCCtx.r.Call("GetParent", args, &reply)
+	err := c.JSONRPCCtx.r.Call("GetParent", uuid, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -375,13 +305,8 @@ func (c *Client) GetRoot() (*Group, error) {
 
 // GetAllDatabases returns all of the available KeePass databases
 func (c *Client) GetAllDatabases(fullDetails bool) ([]Database, error) {
-	args := &struct {
-		FullDetails bool `json:"fullDetails"`
-	}{
-		FullDetails: fullDetails,
-	}
 	var reply []Database
-	err := c.JSONRPCCtx.r.Call("GetAllDataases", args, &reply)
+	err := c.JSONRPCCtx.r.Call("GetAllDataases", fullDetails, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -400,13 +325,8 @@ func (c *Client) GetAllLogins() ([]Entry, error) {
 
 // GetChildEntries returns all entries under a specified parent
 func (c *Client) GetChildEntries(uuid string) ([]Entry, error) {
-	args := &struct {
-		UUID string `json:"uuid"`
-	}{
-		UUID: uuid,
-	}
 	var reply []Entry
-	err := c.JSONRPCCtx.r.Call("GetChildEntries", args, &reply)
+	err := c.JSONRPCCtx.r.Call("GetChildEntries", uuid, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -415,13 +335,8 @@ func (c *Client) GetChildEntries(uuid string) ([]Entry, error) {
 
 // GetChildGroups returns all groups under a specified parent
 func (c *Client) GetChildGroups(uuid string) ([]Group, error) {
-	args := &struct {
-		UUID string `json:"uuid"`
-	}{
-		UUID: uuid,
-	}
 	var reply []Group
-	err := c.JSONRPCCtx.r.Call("GetChildGroups", args, &reply)
+	err := c.JSONRPCCtx.r.Call("GetChildGroups", uuid, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -434,16 +349,8 @@ func (c *Client) GetChildGroups(uuid string) ([]Group, error) {
 //
 // public int FindGroups(string name, string uuid, out Group[] groups)
 func (c *Client) FindGroups(name, uuid string) (int, error) {
-	args := &struct {
-		Name   string  `json:"name"`
-		UUID   string  `json:"uuid"`
-		Groups []Group `json:"groups"`
-	}{
-		Name: name,
-		UUID: uuid,
-	}
 	var reply int
-	err := c.JSONRPCCtx.r.Call("FindGroups", args, &reply)
+	err := c.JSONRPCCtx.r.Call("FindGroups", []interface{}{name, uuid, nil}, &reply)
 	if err != nil {
 		return -1, err
 	}
@@ -452,26 +359,16 @@ func (c *Client) FindGroups(name, uuid string) (int, error) {
 
 // FindLogins searches the database for logins matching a pattern
 func (c *Client) FindLogins(unsanitizedURLs []string, actionURL, httpRealm string, lst LoginSearchType, requireFullURLMatches bool, uniqueID, dbFileName, freeTextSearch, username string) ([]Entry, error) {
-	args := &struct {
-		UnsanitizedURLs       []string        `json:"unsanitizedURLs"`
-		ActionURL             string          `json:"actionURL"`
-		HTTPRealm             string          `json:"httpRealm"`
-		LST                   LoginSearchType `json:"lst"`
-		RequireFullURLMatches bool            `json:"requireFullURLMatches"`
-		UniqueID              string          `json:"uniqueID"`
-		DBFileName            string          `json:"dbFileName"`
-		FreeTextSearch        string          `json:"freeTextSearch"`
-		Username              string          `json:"username"`
-	}{
-		UnsanitizedURLs: unsanitizedURLs,
-		ActionURL:       actionURL,
-		HTTPRealm:       httpRealm,
-		LST:             lst,
-		RequireFullURLMatches: requireFullURLMatches,
-		UniqueID:              uniqueID,
-		DBFileName:            dbFileName,
-		FreeTextSearch:        freeTextSearch,
-		Username:              username,
+	args := []interface{}{
+		unsanitizedURLs,
+		actionURL,
+		httpRealm,
+		lst,
+		requireFullURLMatches,
+		uniqueID,
+		dbFileName,
+		freeTextSearch,
+		username,
 	}
 	var reply []Entry
 	err := c.JSONRPCCtx.r.Call("FindLogins", args, &reply)
@@ -483,18 +380,12 @@ func (c *Client) FindLogins(unsanitizedURLs []string, actionURL, httpRealm strin
 
 // CountLogins returns the number of logins that match a pattern
 func (c *Client) CountLogins(URL, actionURL, httpRealm string, lst LoginSearchType, requireFullURLMatches bool) (int, error) {
-	args := &struct {
-		URL                   string          `json:"url"`
-		ActionURL             string          `json:"actionURL"`
-		HTTPRealm             string          `json:"httpRealm"`
-		LST                   LoginSearchType `json:"lst"`
-		RequireFullURLMatches bool            `json:"requireFullURLMatches"`
-	}{
-		URL:       URL,
-		ActionURL: actionURL,
-		HTTPRealm: httpRealm,
-		LST:       lst,
-		RequireFullURLMatches: requireFullURLMatches,
+	args := []interface{}{
+		URL,
+		actionURL,
+		httpRealm,
+		lst,
+		requireFullURLMatches,
 	}
 	var reply int
 	err := c.JSONRPCCtx.r.Call("CountLogins", args, &reply)

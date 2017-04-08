@@ -2,48 +2,26 @@ package main
 
 import (
 	"log"
+	"os"
+
+	"github.com/logic/go-keepassrpc/keepassrpc"
 )
 
+var config *configuration
+var client *keepassrpc.Client
+
 func main() {
-	config, err := loadConfig()
+	var err error
+	config, err = loadConfig()
 	if err != nil {
 		log.Fatal("loadConfig: ", err)
 	}
 
-	if err := initSRP(config); err != nil {
+	client, err = initSRP(config)
+	if err != nil {
 		log.Fatal("initSRP: ", err)
 	}
-	defer config.client.Close()
+	defer client.Close()
 
-	version, err := config.client.SystemVersion()
-	if err != nil {
-		log.Fatal("SystemVersion: ", err)
-	}
-	log.Println("system.version:", version)
-
-	about, err := config.client.SystemVersion()
-	if err != nil {
-		log.Fatal("SystemAbout: ", err)
-	}
-	log.Println("system.about:", about)
-
-	methods, err := config.client.SystemListMethods()
-	if err != nil {
-		log.Fatal("SystemListMethods: ", err)
-	}
-
-	for i := range methods {
-		log.Println(methods[i])
-	}
-
-	root, err := config.client.GetRoot()
-	if err != nil {
-		log.Fatal("GetRoot: ", err)
-	}
-
-	groups, err := config.client.FindGroups("foo", root.UniqueID)
-	if err != nil {
-		log.Fatal("FindGroups: ", err)
-	}
-	log.Println(groups)
+	ParseCommand(os.Args)
 }

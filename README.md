@@ -19,6 +19,15 @@ challenge/response protocol, and eventually the JSON RPC protocol. A good
 place to start would be to look at the `Client` struct and the `NewClient()`
 function.
 
+We use `jsonenums` to generate marshal/unmarshal helpers for a couple of the
+enum values passed to us from the KeePassRPC service. To build, you'll need
+to run:
+
+    `go get github.com/campoy/jsonenums`
+
+Once you have `jsonenums` in your `PATH`, run `go generate ./...` to create
+the needed files.
+
 Additional Links
 ----------------
 

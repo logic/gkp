@@ -10,17 +10,14 @@ import (
 	"strings"
 
 	"github.com/kirsle/configdir"
-	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/tmc/keyring"
 )
 
 type configuration struct {
-	Username   string
-	Password   string
-	Value      *big.Int
-	SessionKey *big.Int
+	Username string
 
-	client *keepassrpc.Client
-	file   string
+	sessionKey *big.Int
+	file       string
 }
 
 func (config *configuration) prompt() (string, error) {
@@ -30,8 +27,7 @@ func (config *configuration) prompt() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config.Password = strings.TrimSpace(text)
-	return config.Password, nil
+	return strings.TrimSpace(text), nil
 }
 
 // Save checkpoints our configuration to disk, typically called after a
@@ -44,27 +40,34 @@ func (config *configuration) Save() error {
 	defer f.Close()
 	encoder := json.NewEncoder(f)
 	encoder.Encode(config)
-	return nil
+	return keyring.Set("kp", config.Username, config.sessionKey.Text(16))
 }
 
 func loadConfig() (*configuration, error) {
-	config := new(configuration)
+	var config configuration
 
-	configPath := configdir.LocalConfig("kpcli")
+	configPath := configdir.LocalConfig("kp")
 	if err := configdir.MakePath(configPath); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	config.file = filepath.Join(configPath, "settings.json")
 	f, err := os.Open(config.file)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return config, nil
+			return &config, nil
 		}
 		return nil, err
 	}
 	defer f.Close()
 	d := json.NewDecoder(f)
 	d.Decode(&config)
-	return config, nil
+	if config.Username != "" {
+		sessionKey, err := keyring.Get("kp", config.Username)
+		if err != nil {
+			return nil, err
+		}
+		config.sessionKey, _ = new(big.Int).SetString(sessionKey, 16)
+	}
+	return &config, nil
 }
