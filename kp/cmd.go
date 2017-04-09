@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type command interface {
@@ -17,8 +18,17 @@ var subcommands = map[string]command{}
 func globalHelp() {
 	flag.Usage()
 	fmt.Println("Valid subcommands:")
-	for name, cmd := range subcommands {
-		fmt.Printf("    %-10s %s\n", name, cmd.Help())
+
+	names := make([]string, len(subcommands))
+	i := 0
+	for k := range subcommands {
+		names[i] = k
+		i++
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		fmt.Printf("    %-10s %s\n", name, subcommands[name].Help())
 	}
 	os.Exit(1)
 }

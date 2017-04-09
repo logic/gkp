@@ -5,19 +5,20 @@ import (
 	"os"
 
 	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/logic/go-keepassrpc/keepassrpc/cli"
 )
 
-var config *configuration
+var config *cli.Configuration
 var client *keepassrpc.Client
 
 func main() {
 	var err error
-	config, err = loadConfig()
+	config, err = cli.LoadConfig()
 	if err != nil {
 		log.Fatal("loadConfig: ", err)
 	}
 
-	client, err = initSRP(config)
+	client, err = cli.Dial(config, cli.Prompt)
 	if err != nil {
 		log.Fatal("initSRP: ", err)
 	}

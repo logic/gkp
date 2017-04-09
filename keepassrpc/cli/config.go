@@ -1,38 +1,33 @@
-package main
+package cli
 
 import (
-	"bufio"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/kirsle/configdir"
 	"github.com/tmc/keyring"
 )
 
-type configuration struct {
+var (
+	// ConfigID is the general-purpose name we use to identify ourselves.
+	// Can be overridden on an per-application basis from Init(), if
+	// desired.
+	ConfigID = "go-keepassrpc"
+)
+
+// Configuration represents our saved username and session key state.
+type Configuration struct {
 	Username string
 
 	sessionKey *big.Int
 	file       string
 }
 
-func (config *configuration) prompt() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter the code provided by KeePass: ")
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(text), nil
-}
-
 // Save checkpoints our configuration to disk, typically called after a
 // successful SRP negotiation.
-func (config *configuration) Save() error {
+func (config *Configuration) Save() error {
 	f, err := os.Create(config.file)
 	if err != nil {
 		return err
@@ -40,13 +35,15 @@ func (config *configuration) Save() error {
 	defer f.Close()
 	encoder := json.NewEncoder(f)
 	encoder.Encode(config)
-	return keyring.Set("kp", config.Username, config.sessionKey.Text(16))
+	return keyring.Set(ConfigID, config.Username, config.sessionKey.Text(16))
 }
 
-func loadConfig() (*configuration, error) {
-	var config configuration
+// LoadConfig reads both our on-disk configuration state as well as the
+// secret stored in the keyring.
+func LoadConfig() (*Configuration, error) {
+	var config Configuration
 
-	configPath := configdir.LocalConfig("kp")
+	configPath := configdir.LocalConfig(ConfigID)
 	if err := configdir.MakePath(configPath); err != nil {
 		return nil, err
 	}
@@ -63,7 +60,7 @@ func loadConfig() (*configuration, error) {
 	d := json.NewDecoder(f)
 	d.Decode(&config)
 	if config.Username != "" {
-		sessionKey, err := keyring.Get("kp", config.Username)
+		sessionKey, err := keyring.Get(ConfigID, config.Username)
 		if err != nil {
 			return nil, err
 		}

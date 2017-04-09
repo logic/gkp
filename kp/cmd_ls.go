@@ -35,11 +35,17 @@ func (e byTitleEntry) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
 func (e byTitleEntry) Less(i, j int) bool { return e[i].Title < e[j].Title }
 
 func cmdListPrintSingleEntry(e *keepassrpc.Entry, long bool) {
-	fmt.Printf("%s %s\n", e.UniqueID, e.Title)
+	if long {
+		fmt.Print(e.UniqueID, " ")
+	}
+	fmt.Println(e.Title)
 }
 
 func cmdListPrintSingleGroup(g *keepassrpc.Group, long bool) {
-	fmt.Printf("%s %s/\n", g.UniqueID, g.Title)
+	if long {
+		fmt.Print(g.UniqueID, " ")
+	}
+	fmt.Printf("%s/\n", g.Title)
 }
 
 func cmdListPrintGroup(g *keepassrpc.Group, prefix string, recurse, long bool) error {
@@ -55,25 +61,11 @@ func cmdListPrintGroup(g *keepassrpc.Group, prefix string, recurse, long bool) e
 	}
 	sort.Sort(byTitleEntry(ce))
 
-	if long {
-		for _, c := range cg {
-			cmdListPrintSingleGroup(&c, long)
-		}
-		for _, c := range ce {
-			cmdListPrintSingleEntry(&c, long)
-		}
-	} else {
-		names := make([]string, len(cg)+len(ce))
-		for i, c := range cg {
-			names[i] = fmt.Sprintf("%s/", c.Title)
-		}
-		for i, c := range ce {
-			names[len(cg)+i] = c.Title
-		}
-		sort.Strings(names)
-		for _, n := range names {
-			fmt.Println(n)
-		}
+	for _, c := range cg {
+		cmdListPrintSingleGroup(&c, long)
+	}
+	for _, c := range ce {
+		cmdListPrintSingleEntry(&c, long)
 	}
 
 	if recurse {

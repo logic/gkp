@@ -2,6 +2,8 @@
 
 package keepassrpc
 
+import "sort"
+
 /*
 
 Most of this is translated directly from the KeePassRPC C# source:
@@ -69,6 +71,61 @@ const (
 	MatchAccuracyBest = 50
 )
 
+// Search describes a particular search for entries in KeePass.
+type Search struct {
+	UnsanitizedURLs       []string
+	ActionURL             string // unused?
+	HTTPRealm             string // unused?
+	LST                   LoginSearchType
+	RequireFullURLMatches bool
+	UniqueID              string
+	DBFileName            string
+	FreeTextSearch        string
+	Username              string
+
+	client *Client
+}
+
+// NewSearch returns a fresh Search object.
+func (c *Client) NewSearch() *Search {
+	return &Search{
+		UnsanitizedURLs: []string{}, // cannot be null
+		client:          c,
+	}
+}
+
+// AddURL adds a URL to be used for searching.
+func (s *Search) AddURL(url string) {
+	s.UnsanitizedURLs = append(s.UnsanitizedURLs, url)
+}
+
+// Execute runs the composed search against the KeePass database.
+func (s *Search) Execute() ([]Entry, error) {
+	var reply []Entry
+	args := []interface{}{
+		s.UnsanitizedURLs,
+		s.ActionURL,
+		s.HTTPRealm,
+		s.LST,
+		s.RequireFullURLMatches,
+		s.UniqueID,
+		s.DBFileName,
+		s.FreeTextSearch,
+		s.Username,
+	}
+	err := s.client.JSONRPCCtx.r.Call("FindLogins", args, &reply)
+	if err != nil {
+		return nil, err
+	}
+
+	// If we searched by URL, return results in sorted order, with the
+	// highest matches first.
+	if len(s.UnsanitizedURLs) > 0 {
+		sort.Sort(ByAccuracy(reply))
+	}
+	return reply, nil
+}
+
 // ApplicationMetadata describes the running instance of KeePass
 type ApplicationMetadata struct {
 	KeePassVersion string `json:"keePassVersion"`
@@ -94,19 +151,12 @@ type FormField struct {
 	Page        int           `json:"page"`
 }
 
-// LightEntry represents a single basic entry in the open KeePass database
-type LightEntry struct {
+// Entry describes a single complete entry in the open KeePass database
+type Entry struct {
 	URLs          []string `json:"uRLs"`
 	Title         string   `json:"title"`
 	UniqueID      string   `json:"uniqueID"`
-	UsernameValue string   `json:"usernameValue"`
-	UsernameName  string   `json:"usernameName"`
 	IconImageData string   `json:"iconImageData"`
-}
-
-// Entry describes a single complete entry in the open KeePass database
-type Entry struct {
-	*LightEntry
 
 	HTTPRealm     string      `json:"hTTPRealm"`
 	FormFieldList []FormField `json:"formFieldList"`
@@ -128,6 +178,33 @@ type Entry struct {
 	Parent Group    `json:"parent"`
 	Db     Database `json:"db"`
 }
+
+// Username is a helper function that retrieves the first username form field
+func (e *Entry) Username() string {
+	for _, f := range e.FormFieldList {
+		if f.Type == FFTusername {
+			return f.Value
+		}
+	}
+	return ""
+}
+
+// Password is a helper function that retrieves the first password form field
+func (e *Entry) Password() string {
+	for _, f := range e.FormFieldList {
+		if f.Type == FFTpassword {
+			return f.Value
+		}
+	}
+	return ""
+}
+
+// ByAccuracy orders a list of Entries by match accuracy, for sort.Sort.
+type ByAccuracy []Entry
+
+func (g ByAccuracy) Len() int           { return len(g) }
+func (g ByAccuracy) Swap(i, j int)      { g[i], g[j] = g[j], g[i] }
+func (g ByAccuracy) Less(i, j int) bool { return g[i].MatchAccuracy > g[j].MatchAccuracy }
 
 // Group describes a group within the open KeePass database
 type Group struct {
@@ -378,7 +455,8 @@ func (c *Client) FindLogins(unsanitizedURLs []string, actionURL, httpRealm strin
 	return reply, nil
 }
 
-// CountLogins returns the number of logins that match a pattern
+// CountLogins returns the number of logins that match a pattern. At the
+// time of this writing, this method is unimplemented in the server.
 func (c *Client) CountLogins(URL, actionURL, httpRealm string, lst LoginSearchType, requireFullURLMatches bool) (int, error) {
 	args := []interface{}{
 		URL,

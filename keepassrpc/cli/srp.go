@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"math/big"
@@ -7,7 +7,8 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func initSRP(config *configuration) (client *keepassrpc.Client, err error) {
+// Dial connects to the KeePassRPC service, given a valid configuration.
+func Dial(config *Configuration, prompt keepassrpc.Passworder) (client *keepassrpc.Client, err error) {
 	var value *big.Int
 
 	if config.Username == "" {
@@ -17,7 +18,7 @@ func initSRP(config *configuration) (client *keepassrpc.Client, err error) {
 		config.Username = uuid.NewV4().String()
 	}
 
-	client, err = keepassrpc.NewClient(config.Username, value, config.sessionKey, config.prompt)
+	client, err = keepassrpc.NewClient(config.Username, value, config.sessionKey, prompt)
 	if err != nil {
 		return nil, err
 	}
