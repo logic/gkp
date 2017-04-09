@@ -13,6 +13,7 @@ type cmdSearch struct {
 	ShowAll  bool
 	UniqueID string
 	URLs     bool
+	Results  int
 }
 
 func (cmd *cmdSearch) FlagSet() *flag.FlagSet {
@@ -45,7 +46,14 @@ func (cmd *cmdSearch) Run(args []string) error {
 		return nil
 	}
 
+	countdown := cmd.Results
+	if countdown == 0 {
+		countdown = len(entries)
+	}
 	for _, e := range entries {
+		if countdown < 1 {
+			break
+		}
 		fmt.Println()
 		fmt.Print(e.Title)
 		switch e.MatchAccuracy {
@@ -118,6 +126,8 @@ func (cmd *cmdSearch) Run(args []string) error {
 			}
 			fmt.Println()
 		}
+
+		countdown--
 	}
 
 	return nil
@@ -133,5 +143,7 @@ func init() {
 		"Search for a single unique UUID")
 	cmd.fs.BoolVar(&cmd.URLs, "urls", false,
 		"Treat arguments as URLs instead of free-text search terms")
+	cmd.fs.IntVar(&cmd.Results, "n", 0,
+		"Number of results to return (0 = everything)")
 	subcommands["search"] = cmd
 }
