@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/logic/gkp/keepassrpc"
 )
 
 type cmdSearch struct {

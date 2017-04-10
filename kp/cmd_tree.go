@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/logic/gkp/keepassrpc"
 )
 
 type cmdTree struct {

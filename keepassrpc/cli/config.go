@@ -14,7 +14,7 @@ var (
 	// ConfigID is the general-purpose name we use to identify ourselves.
 	// Can be overridden on an per-application basis from Init(), if
 	// desired.
-	ConfigID = "go-keepassrpc"
+	ConfigID = "gkp"
 )
 
 // Configuration represents our saved username and session key state.

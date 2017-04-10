@@ -3,7 +3,7 @@ package cli
 import (
 	"math/big"
 
-	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/logic/gkp/keepassrpc"
 	"github.com/satori/go.uuid"
 )
 

@@ -13,7 +13,7 @@ import (
 	"net/rpc"
 
 	"github.com/gorilla/websocket"
-	"github.com/logic/go-keepassrpc/keepassrpc/jsonrpc"
+	"github.com/logic/gkp/keepassrpc/jsonrpc"
 )
 
 // DebugJSONRPC controls whether unencrypted JSONRPC debugging will be logged

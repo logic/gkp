@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/logic/go-keepassrpc/keepassrpc"
-	"github.com/logic/go-keepassrpc/keepassrpc/cli"
+	"github.com/logic/gkp/keepassrpc"
+	"github.com/logic/gkp/keepassrpc/cli"
 )
 
 var config *cli.Configuration

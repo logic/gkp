@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/logic/go-keepassrpc/keepassrpc"
+	"github.com/logic/gkp/keepassrpc"
 )
 
 type cmdList struct {

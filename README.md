@@ -1,8 +1,8 @@
-go-keepassrpc
-=============
+gkp
+===
 
-go-keepassrpc is an implementation of the protocol provided by the KeePassRPC
-plugin shipped with [KeeFox](http://keefox.org), a popular Firefox integration
+gkp is an implementation of the protocol provided by the KeePassRPC plugin
+shipped with [KeeFox](http://keefox.org), a popular Firefox integration
 for [KeePass Password Safe](http://keepass.info).
 
 To use this, you'll need:
@@ -18,9 +18,8 @@ See the [getting started](https://github.com/kee-org/KeeFox/wiki/en-%7C-Getting-
 instructions for KeeFox for more information.
 
 Once the plugin is installed, the easiest next step is to install `kp`:
-
 * `go get github.com/campoy/jsonenums`
-* `go get -tags=gnome_keyring github.com/logic/go-keepassrpc/kp`
+* `go get -tags=gnome_keyring github.com/logic/gkp/kp`
 
 (If you don't need GNOME keyring support, you can skip the `-tags` argument
 on the second line.)
@@ -31,13 +30,13 @@ on-screen instructions, and you'll be all set.
 
 `kp` will store a session key in your keystore (on OSX, it uses keychain; on
 Linux, SecretService or GNOME Keyring), and a configuration file with your
-instance username in (probably) `$HOME/.config/go-keepassrpc/settings.json`.
+instance username in (probably) `$HOME/.config/gkp/settings.json`.
 
 kp
 --
 
-`kp` is a command-line client which uses the `keepassrpc` package to talk to
-a running KeePass instance.
+`kp` is a command-line client which uses the `keepassrpc` package to talk to a
+running KeePass instance.
 
 Build with `-tags gnome_keyring` for support for storing the auth secret in
 GNOME keyring. If you use OSX, or a SecretService-compatible secrets backend,
@@ -74,8 +73,8 @@ to run:
 
     `go get github.com/campoy/jsonenums`
 
-Once you have `jsonenums` in your `PATH`, run `go generate ./...` to create
-the needed files.
+Once you have `jsonenums` in your `PATH`, run `go generate ./...` to create the
+needed files.
 
 keepassrpc/cli
 --------------

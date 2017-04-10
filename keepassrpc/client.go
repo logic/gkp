@@ -15,10 +15,10 @@ var DebugClient = false
 const DefaultURL = "ws://127.0.0.1:12546/"
 
 // ClientID is a short ID for our client
-const ClientID = "go-keepassrpc"
+const ClientID = "gkp"
 
 // ClientName is a short human-readable client description
-const ClientName = "go-KeePassRPC"
+const ClientName = "gkp-KeePassRPC"
 
 // ClientDesc is a longer human-readable client description
 const ClientDesc = "A Go KeePassRPC implementation"

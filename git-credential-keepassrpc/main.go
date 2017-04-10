@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/logic/go-keepassrpc/keepassrpc/cli"
+	"github.com/logic/gkp/keepassrpc/cli"
 	"io"
 	"net/url"
 	"os"
