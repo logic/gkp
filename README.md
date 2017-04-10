@@ -19,7 +19,7 @@ We use `jsonenums` to generate marshal/unmarshal helpers for a couple of the
 enum values passed to us from the KeePassRPC service. To build anything based
 on `keepassrpc`, you'll need to install `jsonenums` first:
 
-    `go get github.com/campoy/jsonenums`
+    go get github.com/campoy/jsonenums
 
 Once you have `jsonenums` in your `PATH`, run `go generate ./...` to create the
 needed files.
@@ -51,8 +51,9 @@ See the KeeFox
 instructions for more information.
 
 Once the plugin is installed, the easiest next step is to install `kp`:
-* `go get github.com/campoy/jsonenums`
-* `go get -tags=gnome_keyring github.com/logic/gkp/kp`
+
+    go get github.com/campoy/jsonenums
+    go get -tags=gnome_keyring github.com/logic/gkp/kp
 
 (If you don't need GNOME keyring support, you can skip the `-tags` argument
 on the second line.)
@@ -72,13 +73,13 @@ git-credential-keepassrpc
 looking up credentials. Just build it, drop it into your PATH somewhere, and
 run:
 
-    `git config --global credential.helper keepassrpc`
+    git config --global credential.helper keepassrpc
 
 Build with `-tags gnome_keyring` for support for storing the auth secret in
 GNOME keyring. If you use OSX, or a SecretService-compatible secrets backend,
 you don't need to do anything special. So, for example:
 
-    `go get -tags=gnome_keyring github.com/logic/gkp/git-credential-keepassrpc`
+    go get -tags=gnome_keyring github.com/logic/gkp/git-credential-keepassrpc
 
 Additional Links
 ----------------
