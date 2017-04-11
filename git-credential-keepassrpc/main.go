@@ -3,11 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/logic/gkp/keepassrpc/cli"
 	"io"
+	"log"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/logic/gkp/keepassrpc/cli"
 )
 
 // ReadCredential reads a git-credential formatted input block into a URL
@@ -53,12 +55,14 @@ func ReadCredential(f io.Reader) *url.URL {
 func GetCredentials(u *url.URL) {
 	config, err := cli.LoadConfig()
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
 	// TODO: is there a reasonable way to prompt the user here?
 	client, err := cli.Dial(config, nil)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
@@ -66,6 +70,7 @@ func GetCredentials(u *url.URL) {
 	s.AddURL(u.String())
 	entries, err := s.Execute()
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
