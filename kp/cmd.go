@@ -17,7 +17,6 @@ var subcommands = map[string]command{}
 
 func globalHelp() {
 	flag.Usage()
-	fmt.Println("Valid subcommands:")
 
 	names := make([]string, len(subcommands))
 	i := 0
@@ -27,8 +26,16 @@ func globalHelp() {
 	}
 	sort.Strings(names)
 
+	fmt.Println("Valid subcommands:")
 	for _, name := range names {
 		fmt.Printf("    %-10s %s\n", name, subcommands[name].Help())
+	}
+
+	if len(envvars) != 0 {
+		fmt.Println("\nValid environment variables:")
+		for name, action := range envvars {
+			fmt.Printf("    %-25s %s\n", name, action.Help())
+		}
 	}
 	os.Exit(1)
 }

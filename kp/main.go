@@ -12,6 +12,8 @@ var config *cli.Configuration
 var client *keepassrpc.Client
 
 func main() {
+	ParseEnvironment()
+
 	var err error
 	config, err = cli.LoadConfig()
 	if err != nil {
