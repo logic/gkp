@@ -35,6 +35,7 @@ type Message struct {
 	ClientID   string      `json:"clientTypeID,omitempty"`
 	ClientName string      `json:"clientDisplayName,omitempty"`
 	ClientDesc string      `json:"clientDisplayDescription,omitempty"`
+	Features   []string    `json:"features"`
 }
 
 // ReadMessage reads a message from the server and JSON-decodes it
