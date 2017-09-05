@@ -7,7 +7,7 @@ import (
 )
 
 // Our supported KeePassRPC protocol version
-var protocolVersion = []uint8{1, 7, 0}
+var protocolVersion = []uint8{1, 7, 2}
 
 // ProtocolVersion squashes a ProtocolVersion to an int
 func ProtocolVersion() uint32 {
